@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Školní Kvíz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0ea5e9; --secondary: #8b5cf6; --success: #10b981; --danger: #f43f5e; --warning: #f59e0b;
+            --bg-dark: #020617; --glass: rgba(15, 23, 42, 0.7);
+        }
+        body {
+            margin: 0; min-height: 100vh; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at 50% -20%, #1e1b4b, var(--bg-dark));
+            color: white; display: flex; justify-content: center; align-items: center; overflow: hidden;
+        }
+        .bg-glow { position: absolute; width: 600px; height: 600px; background: var(--secondary); filter: blur(150px); opacity: 0.15; animation: pulseGlow 8s infinite alternate; z-index: -1; }
+        @keyframes pulseGlow { 0% { transform: scale(1); opacity: 0.1; } 100% { transform: scale(1.2); opacity: 0.2; } }
+
+        .container {
+            background: var(--glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 30px; padding: 3rem; 
+            width: 90%; max-width: 700px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative; transition: transform 0.2s;
+        }
+        
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-3px, 0, 0); } 20%, 80% { transform: translate3d(5px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-10px, 0, 0); } 40%, 60% { transform: translate3d(10px, 0, 0); } }
+
+        .stats-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        h1 { font-weight: 800; font-size: 2.2rem; margin: 0; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .badges { display: flex; gap: 10px; }
+        .badge { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem; }
+        .badge-streak { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+        .badge-score { color: #38bdf8; border-color: rgba(56, 189, 248, 0.3); }
+
+        .timer-track { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 2rem; overflow: hidden; }
+        .timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--success), var(--primary)); transition: width 1s linear, background 0.3s; }
+        .timer-warning { background: linear-gradient(90deg, var(--warning), var(--danger)); }
+
+        #otazka-text { font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem; min-height: 4.5rem; color: #f8fafc; line-height: 1.4;}
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 2rem; }
+        .btn-moznost {
+            background: rgba(255, 255, 255, 0.03); color: white; border: 1px solid rgba(255, 255, 255, 0.1); 
+            padding: 1.2rem; border-radius: 16px; font-size: 1.1rem; font-family: 'Fira Code', monospace; 
+            font-weight: 500; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; text-align: left;
+        }
+        .key-hint { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; margin-right: 12px; color: #94a3b8; }
+        .btn-moznost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(14, 165, 233, 0.15); }
+        .btn-moznost:disabled { cursor: default; opacity: 0.7; }
+        
+        .correct { background: rgba(16, 185, 129, 0.2) !important; border-color: var(--success) !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important; }
+        .wrong { background: rgba(244, 63, 94, 0.2) !important; border-color: var(--danger) !important; }
+
+        .controls { display: flex; justify-content: center; margin-top: 10px; }
+        .btn-action { width: 100%; max-width: 400px; border: none; padding: 1.2rem; border-radius: 16px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; text-transform: uppercase; letter-spacing: 1px;}
+        .btn-next { background: linear-gradient(135deg, #0ea5e9, #6366f1); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+        .btn-action:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .ai-box { margin-top: 1.5rem; padding: 1.5rem; border-radius: 16px; background: rgba(0,0,0,0.4); font-style: italic; font-size: 1rem; display: none; border-left: 4px solid; color: #e2e8f0; line-height: 1.6; }
+        .loader { display: none; font-weight: 600; color: var(--primary); margin-bottom: 1rem; font-family: 'Fira Code', monospace; }
+        .loader::after { content: "▮"; animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="container" id="app-card">
+        <div class="stats-bar">
+            <h1>🎓 Školní Kvíz</h1>
+            <div class="badges">
+                <div class="badge badge-streak" id="streak-display">🔥 Série: 0</div>
+                <div class="badge badge-score" id="score-display">🎯 Skóre: 0/0</div>
+            </div>
+        </div>
+        
+        <div class="timer-track"><div class="timer-fill" id="timer-bar"></div></div>
+        
+        <div>
+            <div id="loader" class="loader">root@ai-mentor:~# AI přemýšlí</div>
+            <div id="otazka-text">Připraveno ke spuštění... Klikni na Další otázka.</div>
+            <div class="grid" id="moznosti-container"></div>
+            
+            <div class="controls">
+                <button class="btn-action btn-next" id="btn-next" onclick="novaOtazka()">Další otázka ❯</button>
+            </div>
+            
+            <div class="ai-box" id="ai-feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        let aktualniData = null; let skore = 0; let celkem = 0; let streak = 0;
+        let timerInterval; let timeLeft = 30; let isQuestionActive = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (!isQuestionActive) {
+                if (e.key === 'Enter') novaOtazka();
+                return;
+            }
+            if (['1', '2', '3', '4'].includes(e.key)) {
+                const buttons = document.querySelectorAll('.btn-moznost');
+                const index = parseInt(e.key) - 1;
+                if (buttons[index] && !buttons[index].disabled) {
+                    buttons[index].click();
+                }
+            }
+        });
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 30;
+            const bar = document.getElementById('timer-bar');
+            bar.style.width = '100%';
+            bar.classList.remove('timer-warning');
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / 30) * 100;
+                bar.style.width = `${percentage}%`;
+                
+                if(timeLeft <= 10) bar.classList.add('timer-warning');
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    skontrolovat("TIME_OUT", null);
+                }
+            }, 1000);
+        }
+
+        async function novaOtazka() {
+            clearInterval(timerInterval);
+            isQuestionActive = false;
+            document.getElementById('app-card').classList.remove('shake');
+            document.getElementById('otazka-text').innerText = "Načítám data...";
+            document.getElementById('moznosti-container').innerHTML = "";
+            document.getElementById('ai-feedback').style.display = "none";
+            document.getElementById('btn-next').disabled = true;
+            document.getElementById('loader').style.display = "block";
+            
+            try {
+                const res = await fetch('/nova-otazka');
+                aktualniData = await res.json();
+                
+                document.getElementById('otazka-text').innerText = aktualniData.otazka;
+                
+                const container = document.getElementById('moznosti-container');
+                aktualniData.moznosti.forEach((moznost, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-moznost';
+                    btn.innerHTML = `<span class="key-hint">${index + 1}</span> ${moznost}`;
+                    btn.onclick = () => skontrolovat(moznost, btn);
+                    container.appendChild(btn);
+                });
+                
+                isQuestionActive = true;
+                startTimer();
+            } catch(e) {
+                document.getElementById('otazka-text').innerText = "Systémová chyba. Backend neodpovídá.";
+            }
+            document.getElementById('loader').style.display = "none";
+        }
+
+        async function skontrolovat(zvolena, btnElement) {
+            isQuestionActive = false;
+            clearInterval(timerInterval);
+            celkem++;
+            
+            const buttons = document.querySelectorAll('.btn-moznost');
+            buttons.forEach(b => b.disabled = true);
+            document.getElementById('btn-next').disabled = false;
+
+            const aiBox = document.getElementById('ai-feedback');
+            const loader = document.getElementById('loader');
+            
+            if(zvolena === aktualniData.spravna) {
+                skore++; streak++;
+                if(btnElement) btnElement.classList.add('correct');
+                aiBox.style.borderLeftColor = "var(--success)";
+            } else {
+                streak = 0;
+                document.getElementById('app-card').classList.add('shake');
+                if(btnElement) btnElement.classList.add('wrong');
+                buttons.forEach(b => { if(b.innerText.includes(aktualniData.spravna)) b.classList.add('correct'); });
+                aiBox.style.borderLeftColor = "var(--danger)";
+            }
+
+            document.getElementById('score-display').innerText = `🎯 Skóre: ${skore}/${celkem}`;
+            document.getElementById('streak-display').innerText = `🔥 Série: ${streak}`;
+
+            loader.style.display = "block";
+            loader.innerText = "root@ai-mentor:~# analyzuji_odpoved";
+
+            const odpovedProAI = zvolena === "TIME_OUT" ? "TIME_OUT" : zvolena;
+
+            try {
+                const res = await fetch('/kontrola', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ otazka: aktualniData.otazka, odpoved: odpovedProAI, spravna: aktualniData.spravna }) });
+                const data = await res.json();
+                aiBox.innerText = "👨‍💻 UČITEL (AI):\n" + data.hodnotenie;
+                aiBox.style.display = "block";
+            } catch(e) { aiBox.style.display = "block"; aiBox.innerText = "Chyba při komunikaci s AI."; }
+            loader.style.display = "none";
+        }
+    </script>
+</body>
+</html>
