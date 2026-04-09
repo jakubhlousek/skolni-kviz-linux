@@ -1,48 +1,35 @@
-Školní Kvíz: Linuxové příkazy
-O čem to je
-Udělal jsem webovou aplikaci na procvičování příkazů v Linuxu. Je tam databáze 50 otázek, které se náhodně generují, běží tam časový limit a počítá se skóre (včetně streaků za správné odpovědi za sebou). Hlavní věc je, že jsem tam zapojil umělou inteligenci, která funguje jako učitel – když dá někdo špatnou odpověď, AI mu hned vysvětlí, co ten jeho špatný příkaz vlastně dělá a proč tam nepatří.
+Školní Kvíz - Linux Master Class
 
-Pro koho to je
-Dělal jsem to jako pomůcku pro nás do školy, abychom se líp naučili na maturitu z operačních systémů a nemuseli si příkazy jen pamatovat, ale hned viděli souvislosti.
+Co projekt dělá
+Jedná se o webovou aplikaci určenou pro testování znalostí linuxových příkazů. Obsahuje databázi 50 otázek, odpočet času a počítadlo aktuálního skóre. Hlavním prvkem je integrace umělé inteligence, která v reálném čase analyzuje chybné odpovědi studenta. Funguje jako virtuální učitel, který uživateli vysvětlí, proč udělal chybu a co daný příkaz skutečně provádí.
 
-Technologie
+K čemu je určený
+Projekt slouží jako výuková pomůcka pro studenty IT. Pomáhá k efektivnímu procvičování práce v Linuxu a slouží jako příprava k maturitní zkoušce.
 
-Backend: Python (FastAPI). Vybral jsem ho, protože je jednoduchý na nastavení API a hodně rychlý.
+Použité technologie
 
-Frontend: Čisté HTML, CSS a JavaScript (psal jsem to bez frameworků, aby to bylo lehké).
+Backend: Python (FastAPI, Uvicorn, Requests)
 
-AI: Používám lokální model Llama 3.2 (1B verze), který běží přes Ollamu, takže data nejdou nikam na internet.
+Frontend: HTML, CSS, Vanilla JS
 
-Nasazení: Projekt je v Dockeru pro snadné spuštění kdekoli.
+AI: Lokální LLM model Llama 3.2 (běžící přes Ollama)
 
-Příkazy pro ovládání
-Tady jsou příkazy, které se budou hodit v terminálu:
+Spuštění: Docker
 
-1. Přechod do složky s projektem:
+Návod ke spuštění
 
-Bash
-cd ~/projekt
-2. Zapnutí kvízu (vytvoření a spuštění kontejneru):
+Ujistěte se, že běží lokální API pro umělou inteligenci (Ollama).
+
+V terminálu ve složce s projektem spusťte tento Docker příkaz:
 
 Bash
 docker run -d --name skolni-kviz --network host -v $(pwd):/app -w /app python:3.10-slim sh -c "pip install fastapi uvicorn requests && uvicorn main:app --host 0.0.0.0 --port 8000"
-Po spuštění stačí otevřít prohlížeč na adrese: http://localhost:8000
+Aplikace bude dostupná v prohlížeči na adrese: http://localhost:8000
 
-3. Kontrola běžících služeb:
+Základní příkazy pro správu
 
-Bash
-docker ps
-4. Vypnutí aplikace:
+Zastavení aplikace: docker stop skolni-kviz
 
-Bash
-docker stop skolni-kviz
-5. Smazání kontejneru (pro čistý restart):
+Opětovné spuštění: docker start skolni-kviz
 
-Bash
-docker rm skolni-kviz
-6. Restartování AI modelu (pokud by neběžel):
-
-Bash
-ollama serve
-# (v druhém okně terminálu:)
-ollama run llama3.2:1b
+Kontrola stavu: docker ps
